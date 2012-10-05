@@ -11,6 +11,8 @@ import (
 	"controllers"
 	"config"
 	"fmt"
+	"syscall"
+	"io/ioutil"
 	)
 
 
@@ -51,6 +53,13 @@ func interceptor(handler func(http.ResponseWriter, *http.Request)) func(http.Res
 	}
 }
 func main() {
+	pid := syscall.Getpid()
+	fmt.Printf("Server started with pid: %d\n", pid)
+	err := ioutil.WriteFile("./tmp/pid", []byte(fmt.Sprintf("%d", pid)), 0755)
+	if err != nil{
+		fmt.Printf("Cannot write to: /tmp/pid")
+	}
+
 	http.Handle("/assets/", maxAgeHandler(10*365*24*60*60, http.StripPrefix("/assets/", http.FileServer(http.Dir("public/assets/")))))
 	http.HandleFunc("/api.js", interceptor(controllers.Api))
 	http.ListenAndServe(":8080", nil)
