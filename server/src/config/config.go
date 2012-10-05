@@ -11,28 +11,26 @@ import (
 	"utils/json"
 )
 
-type Config struct{
+type Config struct {
 	filePath string
-	data map[string]interface{}
+	data     map[string]interface{}
 }
 
-func NewConfig(filePath string) (config *Config){
+func NewConfig(filePath string) (config *Config) {
 	config = &Config{filePath: filePath}
 	config.Load()
 	return config
 }
 
-func(config *Config) Load(){
-   data, err := json.ReadJsonFile(config.filePath)
+func (config *Config) Load() {
+	data, err := json.ReadJsonFile(config.filePath)
 	if err != nil {
 		panic(err)
-	}else{
+	} else {
 		config.data = data
 	}
 }
 
-func(config *Config) Get(key string) (value interface{}){
+func (config *Config) Get(key string) (value interface{}) {
 	return config.data[key]
 }
-
-
