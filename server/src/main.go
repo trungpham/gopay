@@ -14,34 +14,27 @@ import (
 	"io/ioutil"
 	"net/http"
 	"syscall"
+	"time"
 )
 
 var Config = config.NewConfig("config/app.json")
 
-type ResponseWriterProxy struct {
-	realResponseWriter *http.ResponseWriter
-	code               int
+type MaxAgeResponseWriter struct {
+	http.ResponseWriter
+	maxAge	time.Duration	// seconds
 }
 
-func (rwp *ResponseWriterProxy) Header() http.Header {
-	return (*rwp.realResponseWriter).Header()
-}
-func (rwp *ResponseWriterProxy) Write(buf []byte) (int, error) {
-	return (*rwp.realResponseWriter).Write(buf)
-}
-func (rwp *ResponseWriterProxy) WriteHeader(code int) {
-	(*rwp.realResponseWriter).WriteHeader(code)
-	rwp.code = code
+func (w MaxAgeResponseWriter) WriteHeader(code int) {
+	if code == 200 {	//only cache the response if it's successful
+		w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", w.maxAge))
+	}
+	w.ResponseWriter.WriteHeader(code)
 }
 
-func maxAgeHandler(seconds int, h http.Handler) http.Handler {
+func maxAgeHandler(maxAge time.Duration, h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		responseWriterProxy := &ResponseWriterProxy{realResponseWriter: &w}
-		h.ServeHTTP(responseWriterProxy, r)
-		if responseWriterProxy.code == 200 {
-			w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", seconds))
-		}
-
+		pw := MaxAgeResponseWriter{w, time.Duration(maxAge.Seconds())}
+		h.ServeHTTP(pw, r)
 	})
 }
 
@@ -59,7 +52,7 @@ func main() {
 		fmt.Printf("Cannot write to: /tmp/pid")
 	}
 
-	http.Handle("/assets/", maxAgeHandler(10*365*24*60*60, http.StripPrefix("/assets/", http.FileServer(http.Dir("public/assets/")))))
+	http.Handle("/assets/", maxAgeHandler(10*365*24*time.Hour, http.StripPrefix("/assets/", http.FileServer(http.Dir("public/assets/")))))
 	http.HandleFunc("/api.js", interceptor(controllers.Api))
 	http.ListenAndServe(":8080", nil)
 }
