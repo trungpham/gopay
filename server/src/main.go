@@ -63,7 +63,10 @@ func main() {
 		fmt.Printf("Cannot write to: /tmp/pid")
 	}
 
-	http.Handle("/assets/", maxAgeHandler(10*365*24*time.Hour, noDirListing(http.StripPrefix("/assets/", http.FileServer(http.Dir("public/assets/"))))))
+	http.Handle("/assets/", maxAgeHandler(10*365*24*time.Hour,
+							noDirListing(
+							http.StripPrefix("/assets/",
+							http.FileServer(http.Dir("public/assets/"))))))
 	http.HandleFunc("/api.js", interceptor(controllers.Api))
 	http.ListenAndServe(":8080", nil)
 }
