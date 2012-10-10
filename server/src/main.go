@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"syscall"
 	"time"
+	"strings"
 )
 
 var Config = config.NewConfig("config/app.json")
@@ -38,6 +39,16 @@ func maxAgeHandler(maxAge time.Duration, h http.Handler) http.Handler {
 	})
 }
 
+func noDirListing(h http.Handler) http.HandlerFunc {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if strings.HasSuffix(r.URL.Path, "/") {
+			http.NotFound(w, r)
+			return
+		}
+		h.ServeHTTP(w, r)
+	})
+}
+
 func interceptor(handler func(http.ResponseWriter, *http.Request)) func(http.ResponseWriter, *http.Request) {
 
 	return func(response http.ResponseWriter, request *http.Request) {
@@ -52,7 +63,7 @@ func main() {
 		fmt.Printf("Cannot write to: /tmp/pid")
 	}
 
-	http.Handle("/assets/", maxAgeHandler(10*365*24*time.Hour, http.StripPrefix("/assets/", http.FileServer(http.Dir("public/assets/")))))
+	http.Handle("/assets/", maxAgeHandler(10*365*24*time.Hour, noDirListing(http.StripPrefix("/assets/", http.FileServer(http.Dir("public/assets/"))))))
 	http.HandleFunc("/api.js", interceptor(controllers.Api))
 	http.ListenAndServe(":8080", nil)
 }
