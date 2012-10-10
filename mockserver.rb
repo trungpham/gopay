@@ -11,7 +11,7 @@ post '/mock/jsonp/post' do
 <body>
 <div id="root"></div>
 <script type="text/javascript">
-var data = '#{params[:_scb]}-{"key": "value"}';
+var data = '#{params[:_done]}-{"key": "value"}';
 var xdUrl = "#{params[:_xdUrl]}";
 if (typeof window.postMessage != 'undefined') {
 parent.postMessage(data, xdUrl.split('/', 3).join('/'));
@@ -29,7 +29,7 @@ end
 
 get '/mock/jsonp/get' do
   <<-JSONP
-#{params[:_scb]}({
+#{params[:_done]}({
   key: 'value'
 });
   JSONP

@@ -12,7 +12,7 @@ describe("lib.xdr", function(){
             params: {
                 key: 'value'
             },
-            success: function(_data){
+            done: function(_data){
                 data = _data;
             }
 
@@ -30,7 +30,7 @@ describe("lib.xdr", function(){
             params: {
                 key: 'value'
             },
-            success: function(_data){
+            done: function(_data){
                 data = _data;
             }
 

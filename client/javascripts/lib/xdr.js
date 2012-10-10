@@ -1,8 +1,7 @@
 NS.XDR = {
     _callbackPrefix: namespace + '.XDR',
     _getUrlLimit: 2000,
-    _scbs: {}, //success callbacks
-    _ecbs: {}, //error callbacks
+    _done: {}, //done callbacks
     _xdPath: null,
     _idCounter:1,
     /**
@@ -47,7 +46,7 @@ NS.XDR = {
     },
     /**
      *
-     * @param {{method: String, url: String, success: Function, error: Function, params: Object}} opts
+     * @param {{method: String, url: String, done: Function, params: Object}} opts
      */
     request: function(opts){
         //clean up the params, remove anything that is undefined
@@ -59,9 +58,9 @@ NS.XDR = {
             }
         }
         if (!opts.method || opts.method.toUpperCase() == 'GET'){
-            this._jsonp(opts.url, params, opts.success, opts.error);
+            this._jsonp(opts.url, params, opts.done);
         }else{
-            this._iframe(opts.url, params, opts.success, opts.error);
+            this._iframe(opts.url, params, opts.done);
         }
     },
     _processJsonp: function(scriptTag, callbackId, callback, response){
@@ -76,27 +75,22 @@ NS.XDR = {
     _prepUrl: function(url, params){
         return url + (url.indexOf('?') == -1 ? '?' : '&') + this._encode_params(params);
     },
-    _jsonp: function(url, params, success, error){
+    _jsonp: function(url, params, success){
         var callbackId = this._guid();
         var jsonpSrc = this._prepUrl(url, params);
         jsonpSrc = this._prepUrl(jsonpSrc, {
             _transport: 'jsonp',
-            _scb: this._callbackPrefix+'._scbs.'+callbackId,
-            _ecb: this._callbackPrefix+'._ecbs.'+callbackId
+            _done: this._callbackPrefix+'._done.'+callbackId
         });
 
         if (jsonpSrc.length > this._getUrlLimit){ //fallback to POST to iframe
-            this._iframe(url, params, callback);
-
+            this._iframe(url, params, success);
         }else{
             var scriptTag = document.createElement('script');
             scriptTag.async = true;
             var _this = this;
-            this._scbs[callbackId] = function(response){
+            this._done[callbackId] = function(response){
                 _this._processJsonp(scriptTag, callbackId, success, response);
-            };
-            this._ecbs[callbackId] = function(response){
-                _this._processJsonp(scriptTag, callbackId, error, response);
             };
             scriptTag.src = jsonpSrc;
 
@@ -117,7 +111,7 @@ NS.XDR = {
         }, 1000);
         this._cleanUpCB(callbackId);
     },
-    _iframe: function(url, params, success, error){
+    _iframe: function(url, params, doneCB, error){
 
         var doc, iframe, iframeName = this._guid(), iframeContainer;
 
@@ -133,7 +127,7 @@ NS.XDR = {
             doc.write("<html><body><iframe id='iframe' name='" + iframeName + "' src='javascript:false' style='position:absolute;top:-1000px;'></iframe></body></html>");
             doc.close();
             iframe = doc.getElementById('iframe');
-            doc.parentWindow.UPay = window.UPay;
+            doc.parentWindow[namespace] = window[namespace];
         } else {
             // for nice browsers, this is easy
             doc = document;
@@ -147,17 +141,13 @@ NS.XDR = {
 
         var callbackId = this._guid();
         var _this = this;
-        this._scbs[callbackId] = function(response){
-            _this._processIframe(doc, iframe, callbackId, success, response, useActiveX);
-        };
-        this._ecbs[callbackId] = function(response){
-            _this._processIframe(doc, iframe, callbackId, error, response, useActiveX);
+        this._done[callbackId] = function(response){
+            _this._processIframe(doc, iframe, callbackId, doneCB, response, useActiveX);
         };
 
         var form = doc.createElement('form');
         var xdUrl = window.location.protocol+'//'+ window.location.host + (this._xdPath ? this._xdPath : (window.location.pathname + window.location.search + (window.location.search ? '&' : '?') + 'xdrId=' + callbackId));
-        form.action = this._prepUrl(url,{_scb: this._callbackPrefix+'._scbs.'+callbackId,
-            _ecb: this._callbackPrefix+'._ecbs.'+callbackId,
+        form.action = this._prepUrl(url,{_done: this._callbackPrefix+'._done.'+callbackId,
             _xdUrl: xdUrl,
             _transport: 'jsonp'
         });
