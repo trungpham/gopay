@@ -1,6 +1,3 @@
-var NS = {};
-NS.Utils = {};
-
 /**
  * Setup the environment
  * @param {{apikey: String}} options
