@@ -21,11 +21,11 @@ var Config = config.NewConfig("config/app.json")
 
 type MaxAgeResponseWriter struct {
 	http.ResponseWriter
-	maxAge	time.Duration	// seconds
+	maxAge time.Duration // seconds
 }
 
 func (w MaxAgeResponseWriter) WriteHeader(code int) {
-	if code == 200 {	//only cache the response if it's successful
+	if code == 200 { //only cache the response if it's successful
 		w.Header().Add("Cache-Control", fmt.Sprintf("max-age=%d, public, must-revalidate, proxy-revalidate", w.maxAge))
 	}
 	w.ResponseWriter.WriteHeader(code)
