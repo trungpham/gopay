@@ -9,12 +9,18 @@ Bundler.require
 
 require 'rake/sprocketstask.rb'
 
-Rake::SprocketsTask.new do |t|
+class ClientCompiler < Closure::Compiler
+  def compress(original)
+    "(function(){#{super(original)}})();"
+  end
+end
+
+Rake::SprocketsTask.new 'client_assets' do |t|
   t.environment = Sprockets::Environment.new do |env|
     %w[javascripts stylesheets images].each do |path|
       env.append_path "client/#{path}"
     end
-    env.js_compressor = Closure::Compiler.new
+    env.js_compressor = ClientCompiler.new :compilation_level => 'ADVANCED_OPTIMIZATIONS'
   end
   t.output = "public/assets"
   t.assets = %w[client.js application.css *.png *.jpeg]

@@ -68,5 +68,8 @@ func main() {
 							http.StripPrefix("/assets/",
 							http.FileServer(http.Dir("public/assets/"))))))
 	http.HandleFunc("/api.js", interceptor(controllers.Api))
+	http.Handle("/",
+					noDirListing(
+					http.FileServer(http.Dir("public/"))))
 	http.ListenAndServe(":8080", nil)
 }

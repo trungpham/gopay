@@ -1,2 +1,0 @@
-window[namespace] = NS;
-})('NS');

@@ -44,6 +44,6 @@ NS.Utils.CreditCard = {
 /**
  Make developer friendly version of the helper function
  */
-NS.validateCardNumber = NS.Utils.isValid;
-NS.getCardType = NS.Utils.getCardType;
-NS.getCardLogo = NS.Utils.getCardLogo;
+NS['validateCardNumber'] = NS.Utils.CreditCard.isValid;
+NS['getCardType'] = NS.Utils.CreditCard.getCardType;
+NS['getCardLogo'] = NS.Utils.CreditCard.getCardLogo;
