@@ -1,6 +1,7 @@
 //= require_self
 //= require_directory ./lib
 //= require_directory ./utils
+//= require_directory ./core
 //= require bootstrap
 
 //set up global object

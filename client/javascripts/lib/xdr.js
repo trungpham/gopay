@@ -79,8 +79,8 @@ NS.XDR = {
         var callbackId = this._guid();
         var jsonpSrc = this._prepUrl(url, params);
         jsonpSrc = this._prepUrl(jsonpSrc, {
-            _transport: 'jsonp',
-            _done: this._callbackPrefix+'._done.'+callbackId
+            '_transport': 'jsonp',
+            '_done': this._callbackPrefix+'._done.'+callbackId
         });
 
         if (jsonpSrc.length > this._getUrlLimit){ //fallback to POST to iframe
@@ -147,9 +147,9 @@ NS.XDR = {
 
         var form = doc.createElement('form');
         var xdUrl = window.location.protocol+'//'+ window.location.host + (this._xdPath ? this._xdPath : (window.location.pathname + window.location.search + (window.location.search ? '&' : '?') + 'xdrId=' + callbackId));
-        form.action = this._prepUrl(url,{_done: this._callbackPrefix+'._done.'+callbackId,
-            _xdUrl: xdUrl,
-            _transport: 'jsonp'
+        form.action = this._prepUrl(url,{'_done': this._callbackPrefix+'._done.'+callbackId,
+            '_xdUrl': xdUrl,
+            '_transport': 'jsonp'
         });
         form.target = iframeName;
         form.method = 'POST';
