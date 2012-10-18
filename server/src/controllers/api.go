@@ -16,7 +16,11 @@ const bootStrapJS =
 `(function(){
 	var script = document.createElement('script');
 	script.async = true;
-	script.src = "/assets/%s";
+	var src = "/assets/%s";
+	if (window.location.hash.indexOf('nsd=1') != -1){
+		src = src.replace('.js', '.d.js');
+	}
+	script.src = src;
 	document.head.appendChild(script);
 })();
 `
